@@ -11,7 +11,7 @@ from omegaconf import DictConfig, OmegaConf
 from store import create_genre_flags
 
 
-def load_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+def load_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     path = Path(cfg.data.path)
     anime_info_df = pd.read_csv(path / "anime_info.csv")
     anime_info_df["is_dirty"] = anime_info_df["Genres"].map(lambda x: 1 if "Hentai" in str(x) else 0)
@@ -35,7 +35,7 @@ def load_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series
     return anime_info_df_final, relavence_scores, user_info
 
 
-def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
+def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
     anime_info_df_final, relavence_scores, user_info = load_dataset(cfg)
     features = OmegaConf.to_container(cfg.data.features)
 
@@ -55,7 +55,7 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
         y.iloc[test_idx_start:],
     )
 
-    return X_train, X_test, y_train, y_test
+    return X_train, y_train, X_test, y_test
 
 
 def load_test_dataset(cfg: DictConfig) -> tuple[dict[int, list[str]], list[str], dict[int, list[str]]]:
