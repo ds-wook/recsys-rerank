@@ -9,6 +9,7 @@ import pandas as pd
 from catboost import CatBoostRanker
 from omegaconf import DictConfig
 from prettytable import PrettyTable
+from tqdm import tqdm
 
 from data import load_dataset, load_test_dataset
 from evalution import map_at_k, ndcg_at_k, recall_at_k
@@ -46,13 +47,11 @@ def generate_predictions(
         already_liked.extend(list(append_list))
 
     predictions = pd.DataFrame(index=candidates)
+    predictions["already_liked"] = [anime_id_2_name_map.get(_id) for _id in already_liked[0 : len(predictions)]]
     predictions["name"] = np.array([anime_id_2_name_map.get(id_) for id_ in candidates])
     predictions["score"] = ranker.predict(features[feature_columns])
     predictions = predictions.sort_values(by="score", ascending=False).head(N)
 
-    predictions[f"already_liked - sample[{N}]"] = [
-        anime_id_2_name_map.get(_id) for _id in already_liked[0 : len(predictions)]
-    ]
     return predictions
 
 
@@ -66,30 +65,36 @@ def _main(cfg: DictConfig):
         else CatBoostRanker().load_model(Path(cfg.models.model_path) / f"{cfg.models.results}.model")
     )
 
-    predictions = generate_predictions(
-        cfg=cfg,
-        user_id=123,
-        user_2_anime_map=user_2_anime_map,
-        candidate_pool=candidate_pool,
-        feature_columns=cfg.stores.features,
-        anime_id_2_name_map=anime_id_2_name_map,
-        ranker=ranker,
-        N=cfg.N,
-    )
+    recommendations = pd.DataFrame()
+    user_sample = np.random.choice(list(user_2_anime_map.keys()), size=10, replace=False)
+
+    for user_id in tqdm(user_sample):
+        predictions = generate_predictions(
+            cfg=cfg,
+            user_id=user_id,
+            user_2_anime_map=user_2_anime_map,
+            candidate_pool=candidate_pool,
+            feature_columns=cfg.stores.features,
+            anime_id_2_name_map=anime_id_2_name_map,
+            ranker=ranker,
+            N=cfg.N,
+        )
+        predictions["user_id"] = user_id
+        recommendations = pd.concat([recommendations, predictions])
 
     # Print evaluation metrics
-    already_liked = predictions[f"already_liked - sample[{cfg.N}]"].tolist()
-    candidates = predictions["name"].tolist()
-
-    recall_at_k_score = recall_at_k(already_liked, candidates, k=cfg.N)
-    map_at_k_score = map_at_k(already_liked, candidates, k=cfg.N)
-    ndcg_at_k_score = ndcg_at_k(already_liked, candidates, k=cfg.N)
+    already_liked = recommendations.groupby("user_id")["already_liked"].apply(list)
+    candidates = recommendations.groupby("user_id")["name"].apply(list)
 
     table = PrettyTable()
-    table.field_names = ["Metric", "Score"]
-    table.add_row(["Recall@K", f"{recall_at_k_score:.3f}"])
-    table.add_row(["MAP@K", f"{map_at_k_score:.3f}"])
-    table.add_row(["NDCG@K", f"{ndcg_at_k_score:.3f}"])
+    table.field_names = ["K", "Recall@K", "MAP@K", "NDCG@K"]
+
+    for k in [3, 5, 10, 20]:
+        recall_at_k_score = recall_at_k(already_liked, candidates, k=k)
+        map_at_k_score = map_at_k(already_liked, candidates, k=k)
+        ndcg_at_k_score = ndcg_at_k(already_liked, candidates, k=k)
+
+        table.add_row([k, f"{recall_at_k_score: .4f}", f"{map_at_k_score:.4f}", f"{ndcg_at_k_score:.4f}"])
 
     print(table)
 
