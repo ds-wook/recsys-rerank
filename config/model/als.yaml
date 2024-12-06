@@ -1,0 +1,5 @@
+params:
+  factors: 10
+  regularization: 0.1
+  iterations: 15
+  random_state: 42

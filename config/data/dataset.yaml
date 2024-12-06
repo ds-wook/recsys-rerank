@@ -1,0 +1,15 @@
+path: input/anime-recommendation/
+encoder: res/encoder/
+seed: 42
+target: relavence_score
+popular_genres:
+  - Comedy
+  - Action
+  - Fantasy
+  - Adventure
+  - Kids
+  - Drama
+  - Sci-Fi
+  - Music
+  - Shounen
+  - Slice of Life

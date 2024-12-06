@@ -1,0 +1,12 @@
+hydra:
+  run:
+    dir: .
+  output_subdir: null
+
+defaults:
+  - _self_
+  - data: dataset
+  - generator: features
+  - models: lightgbm
+  - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
