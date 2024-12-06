@@ -50,8 +50,8 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series, pd.Dat
     test_idx_start = len(X) - test_size
     X_train, X_test, y_train, y_test = (
         X.iloc[0:test_idx_start],
-        X.iloc[test_idx_start:],
         y.iloc[0:test_idx_start],
+        X.iloc[test_idx_start:],
         y.iloc[test_idx_start:],
     )
 
