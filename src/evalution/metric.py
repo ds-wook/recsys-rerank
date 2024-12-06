@@ -65,6 +65,44 @@ def recall_at_k(actual: Iterable, predicted: Iterable, k: int = 10) -> float:
     return np.mean([_recall_at_k(a, p, k) for a, p in zip(actual, predicted) if a is not None])
 
 
+def _ap_at_k(actual: list[int], predicted: list[int], k: int = 10) -> float:
+    if len(predicted) > k:
+        predicted = predicted[:k]
+
+    score = 0.0
+    num_hits = 0.0
+
+    for i, p in enumerate(predicted):
+        if p in actual and p not in predicted[:i]:
+            num_hits += 1.0
+            score += num_hits / (i + 1.0)
+
+    if actual is None:
+        return 0.0
+
+    return score / min(len(actual), k)
+
+
+def map_at_k(actual: Iterable, predicted: Iterable, k: int = 12) -> float:
+    """Compute mean average precision @ k.
+
+    Parameters
+    ----------
+    actual : Iterable
+        Label.
+    predicted : Iterable
+        Predictions.
+    k : int, optional
+        k, by default `12.
+
+    Returns
+    -------
+    float
+        MAP@k.
+    """
+    return np.mean([_ap_at_k(a, p, k) for a, p in zip(actual, predicted) if a is not None])
+
+
 def _dcg_at_k(actual: list[int], predicted: list[int], k: int = 10) -> float:
     """Compute DCG@K for a single user."""
     if len(predicted) > k:
@@ -98,7 +136,7 @@ def _ndcg_at_k(actual: list[int], predicted: list[int], k: int = 10) -> float:
     return dcg / idcg
 
 
-def ndcg_at_k(actual: Iterable, predicted: Iterable, k: int = 10) -> float:
+def ndcg_at_k(actual: Iterable, predicted: Iterable, k: int = 12) -> float:
     """Compute mean NDCG@K across all users.
 
     Parameters
@@ -108,7 +146,7 @@ def ndcg_at_k(actual: Iterable, predicted: Iterable, k: int = 10) -> float:
     predicted : Iterable
         Predictions.
     k : int, optional
-        k, by default ``12``.
+        k, by default `12.
 
     Returns
     -------

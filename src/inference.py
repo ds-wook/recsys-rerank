@@ -12,7 +12,7 @@ from prettytable import PrettyTable
 
 from data import load_dataset, load_test_dataset
 from model import TreeModel
-
+from evalution import ndcg_at_k, recall_at_k, hit_at_k
 
 def candidate_generation(
     user_id: int, candidate_pool: list[str], user_to_anime_map: dict[int, list[str]], N: int
