@@ -11,8 +11,9 @@ from omegaconf import DictConfig
 from prettytable import PrettyTable
 
 from data import load_dataset, load_test_dataset
+from evalution import map_at_k, ndcg_at_k, recall_at_k
 from model import TreeModel
-from evalution import ndcg_at_k, recall_at_k, hit_at_k
+
 
 def candidate_generation(
     user_id: int, candidate_pool: list[str], user_to_anime_map: dict[int, list[str]], N: int
@@ -70,17 +71,25 @@ def _main(cfg: DictConfig):
         user_id=123,
         user_2_anime_map=user_2_anime_map,
         candidate_pool=candidate_pool,
-        feature_columns=cfg.data.features,
+        feature_columns=cfg.stores.features,
         anime_id_2_name_map=anime_id_2_name_map,
         ranker=ranker,
         N=cfg.N,
     )
 
-    table = PrettyTable()
-    table.field_names = ["Anime Name", "Already Liked", "Predicted Score"]
+    # Print evaluation metrics
+    already_liked = predictions[f"already_liked - sample[{cfg.N}]"].tolist()
+    candidates = predictions["name"].tolist()
 
-    for _, row in predictions.iterrows():
-        table.add_row([row["name"], row[f"already_liked - sample[{cfg.N}]"], f"{row['score']:.3f}"])
+    recall_at_k_score = recall_at_k(already_liked, candidates, k=cfg.N)
+    map_at_k_score = map_at_k(already_liked, candidates, k=cfg.N)
+    ndcg_at_k_score = ndcg_at_k(already_liked, candidates, k=cfg.N)
+
+    table = PrettyTable()
+    table.field_names = ["Metric", "Score"]
+    table.add_row(["Recall@K", f"{recall_at_k_score:.3f}"])
+    table.add_row(["MAP@K", f"{map_at_k_score:.3f}"])
+    table.add_row(["NDCG@K", f"{ndcg_at_k_score:.3f}"])
 
     print(table)
 
