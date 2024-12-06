@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from catboost import CatBoostRanker, Pool
-from models import BaseModel
 from omegaconf import DictConfig, OmegaConf
 from typing_extensions import Self
+
+from .base import BaseModel
 
 
 class XGBoostTrainer(BaseModel):
@@ -52,8 +53,8 @@ class CatBoostTrainer(BaseModel):
     ) -> CatBoostRanker:
         train_groups = X_train.index.to_numpy()  # user_id query
         valid_groups = X_valid.index.to_numpy()  # user_id query
-        train_set = Pool(X_train, y_train, cat_features=self.cfg.generator.categorical_features, group_id=train_groups)
-        valid_set = Pool(X_valid, y_valid, cat_features=self.cfg.generator.categorical_features, group_id=valid_groups)
+        train_set = Pool(X_train, y_train, group_id=train_groups)
+        valid_set = Pool(X_valid, y_valid, group_id=valid_groups)
 
         params = OmegaConf.to_container(self.cfg.models.params)
         model = CatBoostRanker(
@@ -90,12 +91,8 @@ class LightGBMTrainer(BaseModel):
         train_groups = X_train.groupby("user_id").size().to_numpy()
         valid_groups = X_valid.groupby("user_id").size().to_numpy()
 
-        train_set = lgb.Dataset(
-            X_train, y_train, params=params, group=train_groups, feature_name=self.cfg.data.features
-        )
-        valid_set = lgb.Dataset(
-            X_valid, y_valid, params=params, group=valid_groups, feature_name=self.cfg.data.features
-        )
+        train_set = lgb.Dataset(X_train, y_train, params=params, group=train_groups)
+        valid_set = lgb.Dataset(X_valid, y_valid, params=params, group=valid_groups)
 
         model = lgb.train(
             params=params,

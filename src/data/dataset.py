@@ -37,7 +37,7 @@ def load_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFr
 
 def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
     anime_info_df_final, relavence_scores, user_info = load_dataset(cfg)
-    features = OmegaConf.to_container(cfg.data.features)
+    features = OmegaConf.to_container(cfg.stores.features)
 
     train_interim = relavence_scores.merge(anime_info_df_final, on="anime_id")
     train = train_interim.merge(user_info, how="inner")

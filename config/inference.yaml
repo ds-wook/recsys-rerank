@@ -3,15 +3,10 @@ hydra:
     dir: .
   output_subdir: null
 
-output:
-  path: output
-  submission: sample_submission.csv
-  name: 2day-cross-validation-xgboost.csv
-  
 defaults:
   - _self_
   - data: dataset
-  - generator: features
+  - stores: feature
   - models: lightgbm
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
