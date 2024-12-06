@@ -66,7 +66,7 @@ def _main(cfg: DictConfig):
     )
 
     recommendations = pd.DataFrame()
-    user_sample = np.random.choice(list(user_2_anime_map.keys()), size=10, replace=False)
+    user_sample = list(user_2_anime_map.keys())[:30]
 
     for user_id in tqdm(user_sample):
         predictions = generate_predictions(

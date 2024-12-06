@@ -46,7 +46,7 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series, pd.Dat
     train = train.set_index("user_id")
 
     test_size = int(1e5)
-    X, y = train[features], train[cfg.data.target].apply(lambda x: int(x * 10))
+    X, y = train[features], train[cfg.data.target].apply(lambda x: 0 if x < 1 else 1)
     test_idx_start = len(X) - test_size
     X_train, X_test, y_train, y_test = (
         X.iloc[0:test_idx_start],
