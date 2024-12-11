@@ -88,8 +88,10 @@ class LightGBMTrainer(BaseModel):
     ) -> lgb.Booster:
         params = OmegaConf.to_container(self.cfg.models.params)
         params["seed"] = self.cfg.models.seed
-        train_groups = X_train.groupby("user_id").size().to_numpy()
-        valid_groups = X_valid.groupby("user_id").size().to_numpy()
+        train_groups = X_train.groupby(self.cfg.stores.user_id).size().to_numpy()
+        valid_groups = X_valid.groupby(self.cfg.stores.user_id).size().to_numpy()
+
+        X_train, X_valid = X_train[self.cfg.stores.features], X_valid[self.cfg.stores.features]
 
         train_set = lgb.Dataset(X_train, y_train, params=params, group=train_groups)
         valid_set = lgb.Dataset(X_valid, y_valid, params=params, group=valid_groups)

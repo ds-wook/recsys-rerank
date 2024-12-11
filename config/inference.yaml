@@ -11,4 +11,4 @@ defaults:
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled
 
-N: 20
+top_k: 20

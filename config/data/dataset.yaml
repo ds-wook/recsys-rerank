@@ -1,15 +1,9 @@
-path: input/anime-recommendation/
+path: input/ml-latest-small/
 encoder: res/encoder/
+train: train_candidates
+test: test
+ratings: ratings
+movies: movies
+candidates: candidates
 seed: 42
-target: relavence_score
-popular_genres:
-  - Comedy
-  - Action
-  - Fantasy
-  - Adventure
-  - Kids
-  - Drama
-  - Sci-Fi
-  - Music
-  - Shounen
-  - Slice of Life
+target: rating
